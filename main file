@@ -1,0 +1,313 @@
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+Decdf = pd.read_csv('December.csv')
+Jandf = pd.read_csv('January.csv')
+Febdf = pd.read_csv('February.csv')
+
+# Take a random sample of 8% of the dataframe
+decSample_df = Decdf.sample(frac=0.08)
+janSample_df = Jandf.sample(frac=0.08)
+febSample_df = Febdf.sample(frac=0.08)
+
+# Now, let's merge the dataframes based on multiple keys
+mergedWinter_df = pd.merge(decSample_df, janSample_df, on=['ride_id', 'rideable_type', 'started_at', 'ended_at', 'start_station_name', 'start_station_id', 'end_station_name', 'end_station_id', 'start_lat', 'start_lng', 'end_lat', 'end_lng', 'member_casual'])
+
+# Concatenate the dataframes vertically
+concatenated_df = pd.concat([decSample_df, janSample_df, febSample_df])
+concatenated_df.to_csv('winterData.csv')
+
+Mardf = pd.read_csv('March.csv')
+
+
+Aprdf = pd.read_csv('April.csv')
+
+
+Maydf = pd.read_csv('May.csv')
+
+
+
+# Take a random sample of 8% of the dataframe
+marSample_df = Mardf.sample(frac=0.08)
+aprSample_df = Aprdf.sample(frac=0.08)
+maySample_df = Maydf.sample(frac=0.08)
+
+Springconcat_df = pd.concat([marSample_df, aprSample_df, maySample_df])
+Springconcat_df.to_csv('springData.csv')
+
+Jundf = pd.read_csv('June.csv')
+
+
+Juldf = pd.read_csv('July.csv')
+
+
+Augdf = pd.read_csv('August.csv')
+
+# Take a random sample of 8% of the dataframe
+junSample_df = Jundf.sample(frac=0.08)
+julSample_df = Juldf.sample(frac=0.08)
+augSample_df = Augdf.sample(frac=0.08)
+
+Summerconcat_df = pd.concat([junSample_df, julSample_df, augSample_df])
+Summerconcat_df.to_csv('summerData.csv')
+
+Sepdf = pd.read_csv('September.csv')
+
+
+Octdf = pd.read_csv('October.csv')
+
+
+Novdf = pd.read_csv('November.csv')
+
+# Take a random sample of 8% of the dataframe
+sepSample_df = Sepdf.sample(frac=0.08)
+octSample_df = Octdf.sample(frac=0.08)
+novSample_df = Novdf.sample(frac=0.08)
+
+Fallconcat_df = pd.concat([sepSample_df, octSample_df, novSample_df])
+Fallconcat_df.to_csv('fallData.csv')
+
+# Combining season CSV files
+
+springdf = pd.read_csv('springData.csv')
+summerdf = pd.read_csv('summerData.csv')
+winterdf = pd.read_csv('winterData.csv')
+falldf = pd.read_csv('fallData.csv')
+
+YrSample_df = pd.concat([sepSample_df, octSample_df, novSample_df])
+YrSample_df.dropna()
+YrSample_df['modified_started_at'] = YrSample_df['started_at'].str.slice(10)
+YrSample_df = YrSample_df.sort_values(by='modified_started_at')
+YrSample_df['modified_started_at'] = YrSample_df['modified_started_at'].str.slice(stop=-6)
+
+YrSample_df['modified_started_at'] = pd.to_numeric(YrSample_df['modified_started_at'])
+
+# Split the data into 4 dataframes based on time ranges
+morningdf = YrSample_df[(YrSample_df['modified_started_at'] >= 5) & (YrSample_df['modified_started_at'] < 11)]
+afternoondf = YrSample_df[(YrSample_df['modified_started_at'] >= 11) & (YrSample_df['modified_started_at'] < 17)]
+eveningdf = YrSample_df[(YrSample_df['modified_started_at'] >= 17) & (YrSample_df['modified_started_at'] < 23)]
+nightdf = pd.concat([YrSample_df[(YrSample_df['modified_started_at'] >= 23)], YrSample_df[(YrSample_df['modified_started_at'] < 5)]])
+
+# Resetting index for each dataframe
+morningdf.reset_index(drop=True, inplace=True)
+afternoondf.reset_index(drop=True, inplace=True)
+eveningdf.reset_index(drop=True, inplace=True)
+nightdf.reset_index(drop=True, inplace=True)
+
+morning_casual = morningdf[morningdf['member_casual'].str.contains('casual', case=False)]
+
+# Resetting index for the new dataframe
+morning_casual.reset_index(drop=True, inplace=True)
+
+afternoon_casual = afternoondf[afternoondf['member_casual'].str.contains('casual', case=False)]
+
+# Resetting index for the new dataframe
+afternoon_casual.reset_index(drop=True, inplace=True)
+
+evening_casual = eveningdf[afternoondf['member_casual'].str.contains('casual', case=False)]
+
+# Resetting index for the new dataframe
+evening_casual.reset_index(drop=True, inplace=True)
+
+night_casual = nightdf[nightdf['member_casual'].str.contains('casual', case=False)]
+
+# Resetting index for the new dataframe
+night_casual.reset_index(drop=True, inplace=True)
+
+morningCasualStartStation = morning_casual['start_station_name'].value_counts()
+afternoonCasualStartStation = afternoon_casual['start_station_name'].value_counts()
+eveningCasualStartStation = evening_casual['start_station_name'].value_counts()
+nightCasualStartStation = night_casual['start_station_name'].value_counts()
+
+morningCasualEndStation = morning_casual['end_station_name'].value_counts()
+afternoonCasualEndStation = afternoon_casual['end_station_name'].value_counts()
+eveningCasualEndStation = evening_casual['end_station_name'].value_counts()
+nightCasualEndStation = night_casual['end_station_name'].value_counts()
+
+HighestMorningCasStation = morningCasualStartStation.head(10)
+
+plt.figure(figsize=(10, 6))
+sns.barplot(x=HighestMorningCasStation.values, y=HighestMorningCasStation.index, palette='viridis')
+plt.title('Top Morning Start Stations by Frequency')
+plt.xlabel('Frequency')
+plt.ylabel('Station Name')
+plt.show()
+
+HighestMorningCasEndStation = morningCasualEndStation.head(10)
+
+plt.figure(figsize=(10, 6))
+sns.barplot(x=HighestMorningCasEndStation.values, y=HighestMorningCasEndStation.index, palette='viridis')
+plt.title('Top Morning End Stations by Frequency')
+plt.xlabel('Frequency')
+plt.ylabel('Station Name')
+plt.show()
+
+HighestAfternoonCasStation = afternoonCasualStartStation.head(10)
+plt.figure(figsize=(10, 6))
+sns.barplot(x=HighestAfternoonCasStation.values, y=HighestAfternoonCasStation.index, palette='viridis')
+plt.title('Top Afternoon Start Stations by Frequency')
+plt.xlabel('Frequency')
+plt.ylabel('Station Name')
+plt.show()
+
+HighestAfternoonCasEndStation = afternoonCasualEndStation.head(10)
+plt.figure(figsize=(10, 6))
+sns.barplot(x=HighestAfternoonCasEndStation.values, y=HighestAfternoonCasEndStation.index, palette='viridis')
+plt.title('Top Afternoon End Stations by Frequency')
+plt.xlabel('Frequency')
+plt.ylabel('Station Name')
+plt.show()
+
+HighestEveningCasStation = afternoonCasualStartStation.head(10)
+plt.figure(figsize=(10, 6))
+sns.barplot(x=HighestEveningCasStation.values, y=HighestEveningCasStation.index, palette='viridis')
+plt.title('Top Evening Start Stations by Frequency')
+plt.xlabel('Frequency')
+plt.ylabel('Station Name')
+plt.show()
+
+HighestEveningCasEndStation = eveningCasualStartStation.head(10)
+plt.figure(figsize=(10, 6))
+sns.barplot(x=HighestEveningCasEndStation.values, y=HighestEveningCasEndStation.index, palette='viridis')
+plt.title('Top Evening End Stations by Frequency')
+plt.xlabel('Frequency')
+plt.ylabel('Station Name')
+plt.show()
+
+HighestNightCasStation = nightCasualStartStation.head(10)
+plt.figure(figsize=(10, 6))
+sns.barplot(x=HighestNightCasStation.values, y=HighestNightCasStation.index, palette='viridis')
+plt.title('Top Night Start Stations by Frequency')
+plt.xlabel('Frequency')
+plt.ylabel('Station Name')
+plt.show()
+
+HighestNightCasEndStation = nightCasualEndStation.head(10)
+plt.figure(figsize=(10, 6))
+sns.barplot(x=HighestNightCasEndStation.values, y=HighestNightCasEndStation.index, palette='viridis')
+plt.title('Top Night End Stations by Frequency')
+plt.xlabel('Frequency')
+plt.ylabel('Station Name')
+plt.show()
+
+
+sumDf = pd.read_csv('summerData.csv')
+sumDf.dropna()
+
+casualDf = sumDf.groupby('member_casual').get_group('casual')
+casualNamesStart = casualDf['start_station_name'].unique()
+casualNameCount = casualNamesStart.value_counts()
+
+top_stations = casualNameCount.nlargest(10)
+
+sns.barplot(x=top_stations.index, y=top_stations.values)
+plt.xlabel('Start Station Name')
+plt.ylabel('# of Rides')
+plt.title('Top 10 Start Station Names for Summer')
+plt.xticks(rotation=45, ha='right')
+plt.show()
+
+casualNamesEnd = casualDf['end_station_name'].unique()
+casualNameCount = casualNamesEnd.value_counts()
+top_stations = casualNameCount.nlargest(10)
+sns.barplot(x=top_stations.index, y=top_stations.values)
+plt.xlabel('End Station Name')
+plt.ylabel('# of Rides')
+plt.title('Top 10 End Station Names for Summer Histogram')
+plt.xticks(rotation=45, ha='right')
+plt.show()
+
+
+fallDf = pd.read_csv('fallData.csv')
+fallDf.dropna()
+
+casualDf = fallDf.groupby('member_casual').get_group('casual')
+casualNamesStart = casualDf['start_station_name'].unique()
+casualNameCount = casualNamesStart.value_counts()
+
+top_stations = casualNameCount.nlargest(10)
+
+sns.barplot(x=top_stations.index, y=top_stations.values)
+plt.xlabel('Start Station Name')
+plt.ylabel('# of Rides')
+plt.title('Top 10 Start Station Names for Fall')
+plt.xticks(rotation=45, ha='right')
+plt.show()
+
+casualNamesEnd = casualDf['end_station_name'].unique()
+casualNameCount = casualNamesEnd.value_counts()
+top_stations = casualNameCount.nlargest(10)
+sns.barplot(x=top_stations.index, y=top_stations.values)
+plt.xlabel('End Station Name')
+plt.ylabel('# of Rides')
+plt.title('Top 10 End Station Names for Fall Histogram')
+plt.xticks(rotation=45, ha='right')
+plt.show()
+
+
+wintDf = pd.read_csv('winterData.csv')
+wintDf.dropna()
+
+casualDf = wintDf.groupby('member_casual').get_group('casual')
+casualNamesStart = casualDf['start_station_name'].unique()
+casualNameCount = casualNamesStart.value_counts()
+
+top_stations = casualNameCount.nlargest(10)
+
+sns.barplot(x=top_stations.index, y=top_stations.values)
+plt.xlabel('Start Station Name')
+plt.ylabel('# of Rides')
+plt.title('Top 10 Start Station Names for Winter')
+plt.xticks(rotation=45, ha='right')
+plt.show()
+
+casualNamesEnd = casualDf['end_station_name'].unique()
+casualNameCount = casualNamesEnd.value_counts()
+top_stations = casualNameCount.nlargest(10)
+sns.barplot(x=top_stations.index, y=top_stations.values)
+plt.xlabel('End Station Name')
+plt.ylabel('# of Rides')
+plt.title('Top 10 End Station Names for Winter Histogram')
+plt.xticks(rotation=45, ha='right')
+plt.show()
+
+
+springDf = pd.read_csv('springData.csv')
+springDf.dropna()
+
+casualDf = springDf.groupby('member_casual').get_group('casual')
+casualNamesStart = casualDf['start_station_name'].unique()
+casualNameCount = casualNamesStart.value_counts()
+
+top_stations = casualNameCount.nlargest(10)
+
+sns.barplot(x=top_stations.index, y=top_stations.values)
+plt.xlabel('Start Station Name')
+plt.ylabel('# of Rides')
+plt.title('Top 10 Start Station Names for Spring')
+plt.xticks(rotation=45, ha='right')
+plt.show()
+
+casualNamesEnd = casualDf['end_station_name'].unique()
+casualNameCount = casualNamesEnd.value_counts()
+top_stations = casualNameCount.nlargest(10)
+sns.barplot(x=top_stations.index, y=top_stations.values)
+plt.xlabel('End Station Name')
+plt.ylabel('# of Rides')
+plt.title('Top 10 End Station Names for Spring Histogram')
+plt.xticks(rotation=45, ha='right')
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
